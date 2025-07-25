@@ -13,57 +13,60 @@ El flujo de trabajo consiste en los siguientes pasos:
 8. Se despliega en SageMaker, creando su imagen y endpoint para consultas.
 
 ## Explicación de decisiones técnicas
-Contexto:
+
+**Contexto**:
 - Se realizaron en local distintas pruebas de modelos (XGBOOST, LightBoom, CATBoost, RandomForest, RegresionLogisticas) reduciendo dimensiones, incrementando caracteristicas antes o despues de que se genere la descripción.
 - Se probaron distintos enfoques de enviar la información al LLM:
     - Enviar el dataset poco a poco al LLM de manera asincronica (LLM + Finbert + Lazyframe) 
     - Enviar el dataset con batches grandes al LLM de manera asincronica (LLM + Finbert + Lazyframe)
     - Enviar todo el dataset con batches al LLM de manera asincronica ( LLM + Lazyframe)
-- Se probo emplear FinBERT y contrapartes finetuneadas en local para procesar las descripciones otorgadas por el LLM (+20 minutos) en contraparte de usar netamente el modelo LLM para describir y clasificar (1-3 min)
+- Se probo emplear **FinBERT** y contrapartes finetuneadas en local para procesar las descripciones otorgadas por el LLM (+20 minutos) en contraparte de usar netamente el modelo LLM para describir y clasificar (1-3 min)
 
 Dada las pruebas y la investigación realizada para llevar a cabo el desafío se decidieron usar estas tecnologías:
-- Nova Lite: Presenta una ventana de contexto amplia evitando que se pierda información, un modelo barato y rápido.
-- Polars: Tiene mejor rendimiento que Pandas, similar integración con librerias existentes y permite usar Lazyframes, para evitar cargar todo de golpe en la memoria. Esto último es útil si el dataset es muy grande.
-- BayernSearch: Se consultaron papers y se encontro uno que "indentificaba fraudes de transacciones" utilizando XGBOOST empleando GridSearch, SMOTE y BayernSearch. Donde la combinación de los dos últimos le daba el mejor rendimiento por hacer una búsqueda inteligente de hiperparametros (los dataset empleados eran de más de 100k registros) - Nombre del paper: A novel approach based on XGBoost classifier and Bayesian optimization for credit card fraud detection. 
-- Vectorizar las descripciones: Con TF-IDF se vectorizan las descripciones para aprovechar esa estructura que dio el LLM y las relaciones que determino gracias al prompt, la información brindada y el conocimiento que tiene.
-- Se uso la API Converse para interactuar con el LLM, no mediante los servicios.
-- SMOTE: Debido a que el dataset presentaba más "good risk" se equiparo las proporciones para un entrenamiento más preciso
+- **Nova Lite**: Presenta una ventana de contexto amplia evitando que se pierda información, un modelo barato y rápido.
+- **Polars**: Tiene mejor rendimiento que Pandas, similar integración con librerias existentes y permite usar Lazyframes, para evitar cargar todo de golpe en la memoria. Esto último es útil si el dataset es muy grande.
+- **BayernSearch**: Se consultaron papers y se encontro uno que "indentificaba fraudes de transacciones" utilizando XGBOOST empleando GridSearch, SMOTE y BayernSearch. Donde la combinación de los dos últimos le daba el mejor rendimiento por hacer una búsqueda inteligente de hiperparametros (los dataset empleados eran de más de 100k registros) - Nombre del paper: **A novel approach based on XGBoost classifier and Bayesian optimization for credit card fraud detection.** 
+- Vectorizar las descripciones: Con **TF-IDF** se vectorizan las descripciones para aprovechar esa estructura que dio el LLM y las relaciones que determino gracias al prompt, la información brindada y el conocimiento que tiene.
+- Se uso la **API Converse** para interactuar con el LLM, no mediante la UI.
+- **SMOTE**: Debido a que el dataset presentaba más "good risk" se equiparo las proporciones para un entrenamiento más preciso
+- Se decidió llenar los espacios en con "no info" las Saving account y Checking account dado a que se quiso considerar como si las personas no estaban totalmente "en el sistema financiero"
+- En unas partes se menciona la parte planear cambiar/transformar datos dado que un Lazyframe solo aplica los cambios cuando se trae a memoria, es decir, se convierte en un Dataframe.
 
 ## Métricas de desempeño del modelo
 
 ### Nova Lite
 
-![alt text](image.png)
-![alt text](confusion_matrix.png)
+![Tabla comparativa - Nova Lite](image.png)
+![Matriz confusion - Nova Lite](confusion_matrix.png)
 
 Dependiendo del LLM la precisión del modelo entrenado puede cambiar de manera significativa dado que la redacción es distinta y, con ello, la etiqueta resultante. Asimismo, también la velocidad con la que retorna la afirmación adicional (descripción y clasificación)
 
-La siguiente gráfica es el mismo pipeline, solo que usando Gemini 2.5 Flash como modelo descriptor y clasificador.
+La siguiente gráfica es el mismo pipeline, solo que usando **Gemini 2.5 Flash** como **modelo descriptor y clasificador**.
 
 ### Gemini 2.5 Flash
 
-![alt text](image-1.png)
-![alt text](image-2.png)
+![Tabla comparativa - Gemini Flash](image-1.png)
+![Matriz confusion - Gemini Flash](image-2.png)
 
 Ahora si se toma en cuenta en la descripción el monto mensual y el ratio deuda entre ahorro, los resultados cambian.
 
 ## Nova Lite
-![alt text](image-6.png)
-![alt text](confusion_matrix_features.png)
+![Tabla comparativa - Nova Lite + Features](image-6.png)
+![Matriz confusion - Nova Lite + Features](confusion_matrix_features.png)
 
 # Gemini 2.5 Flash
 
-![alt text](image-7.png)
-![alt text](image-8.png)
+![Tabla comparativa - Gemini Flash + Features](image-7.png)
+![Matriz confusion - Gemini Flash + Features](image-8.png)
 
 ## Screenshots o logs de Bedrock y SageMaker
 
 Se empleo Bedrock por medio de la api de Converse y el modelo seleccionado fue Nova Lite.
-![alt text](image-3.png)
-![alt text](image-4.png)
-![alt text](image-5.png)
-![alt text](image-9.png)
-![alt text](image-10.png)
+![Logs de un intento de desplegar el modelo](image-3.png)
+![Logs de Notebooks 1](image-4.png)
+![Logs de Notebooks 2](image-5.png)
+![Un endpoint](image-9.png)
+![Algunos registros de servicios usados](image-10.png)
 
 ## Hallazgos
 
