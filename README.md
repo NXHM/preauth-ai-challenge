@@ -31,6 +31,7 @@ Dada las pruebas y la investigación realizada para llevar a cabo el desafío se
 - **SMOTE**: Debido a que el dataset presentaba más "good risk" se equiparo las proporciones para un entrenamiento más preciso
 - Se decidió llenar los espacios en con "no info" las Saving account y Checking account dado a que se quiso considerar como si las personas no estaban totalmente "en el sistema financiero"
 - En unas partes se menciona la parte planear cambiar/transformar datos dado que un Lazyframe solo aplica los cambios cuando se trae a memoria, es decir, se convierte en un Dataframe.
+- Se decidió colocar el prompt en Inglés dado que la mayoría de LLM están entrenados principalmente en inglés, por lo que tiene más información en general en ese idioma y la cantidad de tokens por palabra. Entonces, con esta decisión, se busca maximizar las relaciones que se pueden obtener con los modelos de lenguaje, como Gemini, Nova, Claude, etc.
 
 ## Métricas de desempeño del modelo
 
